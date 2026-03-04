@@ -59,7 +59,12 @@ This can also be used to control which fork is used, though only upstream `qmk_f
 1. Commit your changes to your userspace repository
 
 
-## build it 
+## Build it
+
 ```
 qmk compile -kb crkbd/rev1 -km chococafe -e CONVERT_TO=rp2040_ce
 ```
+
+## Keymap layout
+
+![My keymap layout](layouts/my_keymap.svg)
