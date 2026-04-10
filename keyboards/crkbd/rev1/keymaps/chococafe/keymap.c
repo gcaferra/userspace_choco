@@ -42,19 +42,19 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 }
 
 // ─── Combos ───────────────────────────────────────────────────────────────────
-// Arrays use plain KC_x — QMK matches on base keycode at that matrix position,
-// so KC_J matches the CTL_J key, KC_K matches SFT_K, etc.
+// All combos use plain (non-mod-tap) keys only — mod-tap keys intercept
+// keypresses before the combo engine sees them.
 //
-//  J + K  =>  =>    LINQ lambda    right home row, index+middle
-//  D + F  =>  !=    not-equal      left home row,  middle+index
-//  S + D  =>  ==    equality       left home row,  ring+middle
-//  J + L  =>  ??    null coalesce  right home row, index+ring
+//  Y + U  =>  =>    LINQ lambda    right top row, pinky+ring
+//  W + E  =>  !=    not-equal      left top row,  ring+middle
+//  Q + W  =>  ==    equality       left top row,  pinky+ring
+//  U + O  =>  ??    null coalesce  right top row, ring+middle (skip index)
 //  M + ,  =>  ->    bash arrow     right bottom row
 
-const uint16_t PROGMEM arrow_combo[] = {KC_J, KC_K,    COMBO_END};
-const uint16_t PROGMEM neql_combo[]  = {KC_D, KC_F,    COMBO_END};
-const uint16_t PROGMEM deql_combo[]  = {KC_S, KC_D,    COMBO_END};
-const uint16_t PROGMEM ncoal_combo[] = {KC_J, KC_L,    COMBO_END};
+const uint16_t PROGMEM arrow_combo[] = {KC_Y, KC_U,    COMBO_END};
+const uint16_t PROGMEM neql_combo[]  = {KC_W, KC_E,    COMBO_END};
+const uint16_t PROGMEM deql_combo[]  = {KC_Q, KC_W,    COMBO_END};
+const uint16_t PROGMEM ncoal_combo[] = {KC_U, KC_O,    COMBO_END};
 const uint16_t PROGMEM rarr_combo[]  = {KC_M, KC_COMM, COMBO_END};
 
 combo_t key_combos[] = {
@@ -108,14 +108,14 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 // ║  Layer 1 — Navigation  (Space hold)                                     ║
 // ║                                                                          ║
 // ║  ESC   _   _   _   _      DEL HOME  UP  END  BSPC                       ║
-// ║  TAB  OSA OSS OSC OSG     TAB  ←    ↓   →    '                          ║
+// ║ GUI  ALT SFT CTL   _      TAB  ←    ↓   →    '                          ║
 // ║   _   _   _   _  MENU      _  PGUP   _  PGDN  \                         ║
 // ╚══════════════════════════════════════════════════════════════════════════╝
 [1] = LAYOUT_split_3x5_3(
   //|----------------------------------------------|                    |--------------------------------------------|
       KC_ESC,  _______, _______, _______, _______,                        KC_DEL,  KC_HOME, KC_UP,   KC_END,  KC_BSPC,
   //|--------+--------+--------+--------+--------+-|                    |--------+--------+--------+--------+--------|
-      KC_TAB, OSM(MOD_LALT), OSM(MOD_LSFT), OSM(MOD_LCTL), OSM(MOD_LGUI), KC_TAB, KC_LEFT, KC_DOWN, KC_RGHT, KC_QUOT,
+      OSM(MOD_LGUI), OSM(MOD_LALT), OSM(MOD_LSFT), OSM(MOD_LCTL), _______, KC_TAB, KC_LEFT, KC_DOWN, KC_RGHT, KC_QUOT,
   //|--------+--------+--------+--------+--------+-|                    |--------+--------+--------+--------+--------|
       _______, _______, _______, _______, KC_MENU,                        KC_NO,   KC_PGUP, KC_NO,   KC_PGDN, KC_BSLS,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------|
@@ -127,14 +127,14 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 // ║  Layer 2 — Numbers  (inner left thumb)                                  ║
 // ║                                                                          ║
 // ║   _   _   _  DEL BSPC      1   2   3   4   5                            ║
-// ║   _  OSA OSS OSC OSG       6   7   8   9   0                            ║
+// ║  GUI ALT SFT CTL   _       6   7   8   9   0                            ║
 // ║   _   _   _   _   _        _   _   _   _   _                            ║
 // ╚══════════════════════════════════════════════════════════════════════════╝
 [2] = LAYOUT_split_3x5_3(
   //|----------------------------------------------|                    |--------------------------------------------|
       _______, _______, _______, KC_DEL,  KC_BSPC,                        KC_1,    KC_2,    KC_3,    KC_4,    KC_5,
   //|--------+--------+--------+--------+--------+-|                    |--------+--------+--------+--------+--------|
-      _______, OSM(MOD_LALT), OSM(MOD_LSFT), OSM(MOD_LCTL), OSM(MOD_LGUI), KC_6, KC_7,    KC_8,    KC_9,    KC_0,
+      OSM(MOD_LGUI), OSM(MOD_LALT), OSM(MOD_LSFT), OSM(MOD_LCTL), _______, KC_6, KC_7,    KC_8,    KC_9,    KC_0,
   //|--------+--------+--------+--------+--------+-|                    |--------+--------+--------+--------+--------|
       _______, _______, _______, _______, _______,                        _______, _______, _______, _______, _______,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------|
@@ -146,41 +146,59 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 // ║  Layer 3 — F-keys  (outer left thumb)                                   ║
 // ║                                                                          ║
 // ║   _   _   _   _   _      F1  F2  F3  F4  F5                             ║
-// ║   _  OSA OSS OSC OSG     F6  F7  F8  F9  F10                            ║
-// ║   _   _   _   _   _     F11 F12 PRT   _  INS                            ║
+// ║  GUI ALT SFT CTL   _     F6  F7  F8  F9  F10                            ║
+// ║   _   _   _   _   _     F11 F12 F13 F14 F15                             ║
 // ╚══════════════════════════════════════════════════════════════════════════╝
 [3] = LAYOUT_split_3x5_3(
   //|----------------------------------------------|                    |--------------------------------------------|
       _______, _______, _______, _______, _______,                        KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,
   //|--------+--------+--------+--------+--------+-|                    |--------+--------+--------+--------+--------|
-      _______, OSM(MOD_LALT), OSM(MOD_LSFT), OSM(MOD_LCTL), OSM(MOD_LGUI), KC_F6, KC_F7,  KC_F8,   KC_F9,   KC_F10,
+      OSM(MOD_LGUI), OSM(MOD_LALT), OSM(MOD_LSFT), OSM(MOD_LCTL), _______, KC_F6, KC_F7,  KC_F8,   KC_F9,   KC_F10,
   //|--------+--------+--------+--------+--------+-|                    |--------+--------+--------+--------+--------|
-      _______, _______, _______, _______, _______,                        KC_F11,  KC_F12,  KC_PSCR, _______, KC_INS,
+      _______, _______, _______, _______, _______,                        KC_F11,  KC_F12,  KC_F13,  KC_F14,  KC_F15,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------|
                                           _______, _______, _______,    _______, _______, _______
                                       //`--------------------------'  `--------------------------'
 ),
 
 // ╔══════════════════════════════════════════════════════════════════════════╗
-// ║  Layer 4 — System + actions  (Enter hold)                               ║
+// ║  Layer 4 — System + Rider IntelliJ keymap  (Enter hold)                 ║
 // ║                                                                          ║
-// ║  Left hand                        Right hand                             ║
-// ║  ┌─────────────────────────┐      ┌───────────────────────────────┐      ║
-// ║  │ ESC  C-a  C-s  C-f  C-l│      │ F5  S-F5  F10  F11         BSPC│      ║
-// ║  │ TAB   _   C-r  C-y   _ │      │C-S-b A-F7 S-F6 A-Ret         _ │      ║
-// ║  │ C-c  C-z  C-d  C-x  C-v│      │C-S-t  _  _   _        UG│      ║
-// ║  └─────────────────────────┘      └───────────────────────────────┘      ║
+// ║  Verified from JetBrains Rider 'IntelliJ' keymap PDF                    ║
 // ║                                                                          ║
-// ║  Top row:    universal utilities  │  debug lifecycle (Rider)             ║
-// ║  Bottom row: edit/clipboard strip │  run tests, CLI history, redo        ║
+// ║  Left hand — universal + terminal                                        ║
+// ║   ESC   C-a   C-s   C-f   C-l                                           ║
+// ║   TAB   PSCR  C-r   C-y    _                                            ║
+// ║   C-c   C-z   C-d   C-x   C-v                                           ║
+// ║                                                                          ║
+// ║  Right hand — Rider IntelliJ actions                                     ║
+// ║   F9   C-F2   F8    F7   BSPC                                            ║
+// ║  C-F9  A-F7  S-F6  A-Ent  _                                             ║
+// ║  C-;   C-F8  C-S   INS   UG                                             ║
+// ║                                                                          ║
+// ║  Key (all verified from IntelliJ keymap PDF):                            ║
+// ║   F9        = Resume program / continue debug                            ║
+// ║   C-F2      = Stop                                                       ║
+// ║   F8        = Step over                                                  ║
+// ║   F7        = Step into                                                  ║
+// ║   C-F9      = Build  (also: toggle/enable breakpoint context-dep.)       ║
+// ║   A-F7      = Find usages                                                ║
+// ║   S-F6      = Rename                                                     ║
+// ║   A-Ent     = Show context actions / quick fix                           ║
+// ║   C-;       = Unit test prefix (Ctrl+;) — follow with R to run          ║
+// ║   C-F8      = Toggle line breakpoint                                     ║
+// ║   C-S       = Save all                                                   ║
 // ╚══════════════════════════════════════════════════════════════════════════╝
 [4] = LAYOUT_split_3x5_3(
   //|----------------------------------------------|                    |--------------------------------------------|
-      KC_ESC,  C(KC_A), C(KC_S), C(KC_F), C(KC_L),            KC_F5,   S(KC_F5), KC_F10,  KC_F11,  KC_BSPC,
+  //  ESC    C-a      C-s      C-f      C-l            F9      C-F2     F8       F7       BSPC
+      KC_ESC, C(KC_A), C(KC_S), C(KC_F), C(KC_L),      KC_F9,  C(KC_F2),KC_F8,   KC_F7,   KC_BSPC,
   //|--------+--------+--------+--------+--------+-|                    |--------+--------+--------+--------+--------|
-      KC_TAB,  _______, C(KC_R),  C(KC_Y), _______,           C(S(KC_B)), A(KC_F7), S(KC_F6), A(KC_ENT), _______,
+  //  TAB    PSCR     C-r      C-y       _             C-F9    A-F7    S-F6     A-Ent      _
+      KC_TAB, KC_PSCR, C(KC_R), C(KC_Y), _______,    C(KC_F9), A(KC_F7),S(KC_F6),A(KC_ENT),_______,
   //|--------+--------+--------+--------+--------+-|                    |--------+--------+--------+--------+--------|
-      C(KC_C), C(KC_Z), C(KC_D), C(KC_X), C(KC_V),          C(S(KC_T)), _______, _______, _______, UG_TOGG,
+  //  C-c    C-z      C-d      C-x      C-v            C-;     C-F8    C-S      INS      UG
+      C(KC_C),C(KC_Z), C(KC_D), C(KC_X), C(KC_V),   C(KC_SCLN),C(KC_F8),C(KC_S), KC_INS,  UG_TOGG,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------|
                                           _______, _______, _______,    _______, _______, _______
                                       //`--------------------------'  `--------------------------'
@@ -190,14 +208,14 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 // ║  Layer 5 — Brackets + assignment  (right inner thumb)                   ║
 // ║                                                                          ║
 // ║   ~   `   [   ]   @        _   _   _   _  BSPC                          ║
-// ║   (   )   =   !   "       RA  RC  RS  RA   _                            ║
+// ║   (   )   =   !   "        _  RC  RS  RA  RG                            ║
 // ║   {   }   \   '   #        _   _   _   _   _                            ║
 // ╚══════════════════════════════════════════════════════════════════════════╝
 [5] = LAYOUT_split_3x5_3(
   //|----------------------------------------------|                    |--------------------------------------------|
       KC_TILD, KC_GRV,  KC_LBRC, KC_RBRC, KC_AT,                         _______, _______, _______, _______, KC_BSPC,
   //|--------+--------+--------+--------+--------+-|                    |--------+--------+--------+--------+--------|
-      KC_LPRN, KC_RPRN, KC_EQL,  KC_EXLM, KC_DQUO,                       KC_RCMD, KC_RCTL, KC_RSFT, KC_RALT, _______,
+      KC_LPRN, KC_RPRN, KC_EQL,  KC_EXLM, KC_DQUO,                       _______, KC_RCTL, KC_RSFT, KC_RALT, KC_RCMD,
   //|--------+--------+--------+--------+--------+-|                    |--------+--------+--------+--------+--------|
       KC_LCBR, KC_RCBR, KC_BSLS, KC_QUOT, KC_HASH,                       _______, _______, _______, _______, _______,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------|
@@ -209,14 +227,14 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 // ║  Layer 6 — Operators + LINQ  (right outer thumb)                        ║
 // ║                                                                          ║
 // ║   %   *   /   +   -        _   _   _   _  BSPC                          ║
-// ║   |   &   >   <   ?       RA  RC  RS  RA   _                            ║
+// ║   |   &   >   <   ?        _  RC  RS  RA  RG                            ║
 // ║   ^   $   .   ,   ;        _   _   _   _  UG                            ║
 // ╚══════════════════════════════════════════════════════════════════════════╝
 [6] = LAYOUT_split_3x5_3(
   //|----------------------------------------------|                    |--------------------------------------------|
       KC_PERC, KC_ASTR, KC_SLSH, KC_PLUS, KC_MINS,                       _______, _______, _______, _______, KC_BSPC,
   //|--------+--------+--------+--------+--------+-|                    |--------+--------+--------+--------+--------|
-      KC_PIPE, KC_AMPR, KC_GT,   KC_LT,   KC_QUES,                       KC_RCMD, KC_RCTL, KC_RSFT, KC_RALT, _______,
+      KC_PIPE, KC_AMPR, KC_GT,   KC_LT,   KC_QUES,                       _______, KC_RCTL, KC_RSFT, KC_RALT, KC_RCMD,
   //|--------+--------+--------+--------+--------+-|                    |--------+--------+--------+--------+--------|
       KC_CIRC, KC_DLR,  KC_DOT,  KC_COMM, KC_SCLN,                       _______, _______, _______, _______, UG_TOGG,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------|
