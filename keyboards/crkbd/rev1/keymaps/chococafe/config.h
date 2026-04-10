@@ -2,7 +2,13 @@
 
 // ─── Combo ────────────────────────────────────────────────────────────────────
 #define COMBO_COUNT 5
-#define COMBO_TERM 40           // ms window; tune 25–70 to taste
+#define COMBO_TERM 50           // ms window; raise to 70 if still missing, lower
+                                // to 35 if you get accidental triggers in typing
+
+// Required when using combos alongside mod-taps on the same layer.
+// Makes the combo engine evaluate on key release rather than key press,
+// preventing mod-tap hold detection from swallowing combo keypresses.
+#define COMBO_PROCESS_KEY_RELEASE
 
 // ─── Mod-tap ──────────────────────────────────────────────────────────────────
 #define TAPPING_TERM 200        // base; overridden per-key in get_tapping_term()
