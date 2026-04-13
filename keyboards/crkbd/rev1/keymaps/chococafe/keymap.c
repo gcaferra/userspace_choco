@@ -107,15 +107,22 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 // ╔══════════════════════════════════════════════════════════════════════════╗
 // ║  Layer 1 — Navigation  (Space hold)                                     ║
 // ║                                                                          ║
-// ║  ESC   _   _   _   _      DEL HOME  UP  END  BSPC                       ║
-// ║ GUI  ALT SFT CTL   _      TAB  ←    ↓   →    '                          ║
-// ║   _   _   _   _  MENU      _  PGUP   _  PGDN  \                         ║
+// ║  ESC  TAB A-Tab C-Tab S-Tab   DEL HOME  UP  END  BSPC                   ║
+// ║ GUI  ALT  SFT   CTL    _      TAB  ←    ↓   →    '                      ║
+// ║   _   _    _     _   MENU      _  PGUP   _  PGDN  \                     ║
+// ║                                                                          ║
+// ║  Top left: plain TAB + all tab-navigation variants in one row            ║
+// ║   TAB      = plain tab (forward indent / completion)                     ║
+// ║   Alt+Tab  = switch window (hold Alt, keep tapping Tab to cycle)         ║
+// ║   Ctrl+Tab = switch editor tab in Rider / browser tab                    ║
+// ║   Shift+Tab= reverse tab / back-indent                                   ║
 // ╚══════════════════════════════════════════════════════════════════════════╝
 [1] = LAYOUT_split_3x5_3(
   //|----------------------------------------------|                    |--------------------------------------------|
-      KC_ESC,  _______, _______, _______, _______,                        KC_DEL,  KC_HOME, KC_UP,   KC_END,  KC_BSPC,
+  //  ESC    TAB     A-Tab       C-Tab       S-Tab                            DEL    HOME     UP     END    BSPC
+      KC_ESC, KC_TAB, A(KC_TAB), C(KC_TAB), S(KC_TAB),                      KC_DEL, KC_HOME, KC_UP, KC_END, KC_BSPC,
   //|--------+--------+--------+--------+--------+-|                    |--------+--------+--------+--------+--------|
-      OSM(MOD_LGUI), OSM(MOD_LALT), OSM(MOD_LSFT), OSM(MOD_LCTL), _______, KC_TAB, KC_LEFT, KC_DOWN, KC_RGHT, KC_QUOT,
+      OSM(MOD_LGUI), OSM(MOD_LALT), OSM(MOD_LSFT), OSM(MOD_LCTL), _______,KC_TAB, KC_LEFT, KC_DOWN, KC_RGHT, KC_QUOT,
   //|--------+--------+--------+--------+--------+-|                    |--------+--------+--------+--------+--------|
       _______, _______, _______, _______, KC_MENU,                        KC_NO,   KC_PGUP, KC_NO,   KC_PGDN, KC_BSLS,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------|
@@ -194,11 +201,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //  ESC    C-a      C-s      C-f      C-l            F9      C-F2     F8       F7       BSPC
       KC_ESC, C(KC_A), C(KC_S), C(KC_F), C(KC_L),      KC_F9,  C(KC_F2),KC_F8,   KC_F7,   KC_BSPC,
   //|--------+--------+--------+--------+--------+-|                    |--------+--------+--------+--------+--------|
-  //  TAB    PSCR     C-r      C-y       _             C-F9    A-F7    S-F6     A-Ent      _
-      KC_TAB, KC_PSCR, C(KC_R), C(KC_Y), _______,    C(KC_F9), A(KC_F7),S(KC_F6),A(KC_ENT),_______,
+  //  PSCR   _        C-r      C-y       _           C-F9    A-F7    S-F6    A-Ent    C-;
+      KC_PSCR, _______, C(KC_R), C(KC_Y), _______,   C(KC_F9),A(KC_F7),S(KC_F6),A(KC_ENT),C(KC_SCLN),
   //|--------+--------+--------+--------+--------+-|                    |--------+--------+--------+--------+--------|
-  //  C-c    C-z      C-d      C-x      C-v            C-;     C-F8    C-S      INS      UG
-      C(KC_C),C(KC_Z), C(KC_D), C(KC_X), C(KC_V),   C(KC_SCLN),C(KC_F8),C(KC_S), KC_INS,  UG_TOGG,
+  //  C-c    C-z      C-d      C-x      C-v           C-F8    INS      _        _       UG
+      C(KC_C),C(KC_Z), C(KC_D), C(KC_X), C(KC_V),   C(KC_F8), KC_INS, _______, _______, UG_TOGG,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------|
                                           _______, _______, _______,    _______, _______, _______
                                       //`--------------------------'  `--------------------------'
