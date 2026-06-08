@@ -2,7 +2,7 @@
 
 // ─── Combo ────────────────────────────────────────────────────────────────────
 #define COMBO_COUNT 5
-#define COMBO_TERM 50           // ms window; raise to 70 if still missing, lower
+#define COMBO_TERM 40           // ms window; raise to 70 if still missing, lower
                                 // to 35 if you get accidental triggers in typing
 
 // Required when using combos alongside mod-taps on the same layer.
@@ -20,3 +20,6 @@
 
 // ─── One-shot mods ────────────────────────────────────────────────────────────
 #define ONESHOT_TIMEOUT 2000    // ms before an unconsumed one-shot mod expires
+
+#define COMBO_MUST_TAP_PER_COMBO   // enables get_combo_must_tap()
+// #define COMBO_COUNT 5           // only if you're on older QMK; recent QMK auto-counts

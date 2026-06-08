@@ -25,6 +25,7 @@ enum custom_keycodes {
     KC_NCOAL,               // ??
     KC_RARR,                // ->
     KC_SUDORM,              // sudo !!
+    KC_SRCHEV,              // Search Everywhere (double Shift) — Rider / IntelliJ
 };
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
@@ -36,34 +37,59 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             case KC_NCOAL:  SEND_STRING("??"); return false;
             case KC_RARR:   SEND_STRING("->"); return false;
             case KC_SUDORM: SEND_STRING("sudo !!"); return false;
+
+            // JetBrains "Search Everywhere" is a double-tap of Shift.
+            // Two Shift taps produce the press/release/press/release sequence
+            // the IDE listens for. If your double-press window is tight,
+            // insert `wait_ms(40);` between the two taps.
+            case KC_SRCHEV:
+                tap_code(KC_LSFT);
+                tap_code(KC_LSFT);
+                return false;
         }
     }
     return true;
 }
 
-// ─── Combos ───────────────────────────────────────────────────────────────────
-// All combos use plain (non-mod-tap) keys only — mod-tap keys intercept
-// keypresses before the combo engine sees them.
+// ─── Combos — organized on the home row ───────────────────────────────────────
+// Combos DO fire on mod-tap keys. The catch is that the combo array must contain
+// the mod-tap keycode EXACTLY as it appears in the keymap (e.g. SFT_D, not KC_D);
+// referencing the bare letter would never match.
 //
-//  Y + U  =>  =>    LINQ lambda    right top row, pinky+ring
-//  W + E  =>  !=    not-equal      left top row,  ring+middle
-//  Q + W  =>  ==    equality       left top row,  pinky+ring
-//  U + O  =>  ??    null coalesce  right top row, ring+middle (skip index)
-//  M + ,  =>  ->    bash arrow     right bottom row
+// To stop a combo from firing while you're holding those same keys for their
+// home-row modifier role, every combo here is tap-only (see get_combo_must_tap)
+// and COMBO_TERM is kept short (see config.h notes). So: tap two neighbours
+// together => symbol; hold them => normal Alt/Shift/Ctrl/Cmd mods.
+//
+//  Left hand — comparison / equality family
+//   S + D  =>  !=   (ring + middle)
+//   D + F  =>  ==   (middle + index — strongest left pair)
+//
+//  Right hand — arrow / null family
+//   H + J  =>  ->   (inner index + index — least-used, so the inner column)
+//   J + K  =>  =>   (index + middle — strongest right pair, most-used lambda)
+//   K + L  =>  ??   (middle + ring)
 
-const uint16_t PROGMEM arrow_combo[] = {KC_Y, KC_U,    COMBO_END};
-const uint16_t PROGMEM neql_combo[]  = {KC_W, KC_E,    COMBO_END};
-const uint16_t PROGMEM deql_combo[]  = {KC_Q, KC_W,    COMBO_END};
-const uint16_t PROGMEM ncoal_combo[] = {KC_U, KC_O,    COMBO_END};
-const uint16_t PROGMEM rarr_combo[]  = {KC_M, KC_COMM, COMBO_END};
+const uint16_t PROGMEM neql_combo[]  = {ALT_S, SFT_D, COMBO_END};  // !=
+const uint16_t PROGMEM deql_combo[]  = {SFT_D, CTL_F, COMBO_END};  // ==
+const uint16_t PROGMEM rarr_combo[]  = {CMD_H, CTL_J, COMBO_END};  // ->
+const uint16_t PROGMEM arrow_combo[] = {CTL_J, SFT_K, COMBO_END};  // =>
+const uint16_t PROGMEM ncoal_combo[] = {SFT_K, ALT_L, COMBO_END};  // ??
 
 combo_t key_combos[] = {
-    COMBO(arrow_combo, KC_ARROW),
     COMBO(neql_combo,  KC_NEQL),
     COMBO(deql_combo,  KC_DEQL),
-    COMBO(ncoal_combo, KC_NCOAL),
     COMBO(rarr_combo,  KC_RARR),
+    COMBO(arrow_combo, KC_ARROW),
+    COMBO(ncoal_combo, KC_NCOAL),
 };
+
+// Every combo sits on home-row mod-taps, so make them all tap-only: they fire
+// only when the keys are tapped together, never when held for their modifier.
+// (Requires #define COMBO_MUST_TAP_PER_COMBO in config.h)
+bool get_combo_must_tap(uint16_t combo_index, combo_t *combo) {
+    return true;
+}
 
 // ─── Per-key tapping term ─────────────────────────────────────────────────────
 uint16_t get_tapping_term(uint16_t keycode, keyrecord_t *record) {
@@ -91,6 +117,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 // ║   A  S⎇  D⇧  F⌃  G⌘     H⌘  J⌃  K⇧  L⎇  ;                             ║
 // ║   Z   X   C   V   B       N   M   ,   .   /                             ║
 // ║           [3][2][SPC/1]  [ENT/4][5][6]                                  ║
+// ║                                                                          ║
+// ║  Home-row combos (tap two neighbours together):                          ║
+// ║   S+D = !=   D+F = ==        H+J = ->   J+K = =>   K+L = ??              ║
 // ╚══════════════════════════════════════════════════════════════════════════╝
 [0] = LAYOUT_split_3x5_3(
   //|----------------------------------------------|                    |--------------------------------------------|
@@ -175,7 +204,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 // ║                                                                          ║
 // ║  Left hand — universal + terminal                                        ║
 // ║   ESC   C-a   C-s   C-f   C-l                                           ║
-// ║   TAB   PSCR  C-r   C-y    _                                            ║
+// ║  PSCR  SRCH   C-r   C-y    _                                            ║
 // ║   C-c   C-z   C-d   C-x   C-v                                           ║
 // ║                                                                          ║
 // ║  Right hand — Rider IntelliJ actions                                     ║
@@ -184,6 +213,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 // ║  C-;   C-F8  C-S   INS   UG                                             ║
 // ║                                                                          ║
 // ║  Key (all verified from IntelliJ keymap PDF):                            ║
+// ║   SRCH      = Search Everywhere (double Shift) — sits next to PSCR        ║
 // ║   F9        = Resume program / continue debug                            ║
 // ║   C-F2      = Stop                                                       ║
 // ║   F8        = Step over                                                  ║
@@ -201,8 +231,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //  ESC    C-a      C-s      C-f      C-l            F9      C-F2     F8       F7       BSPC
       KC_ESC, C(KC_A), C(KC_S), C(KC_F), C(KC_L),      KC_F9,  C(KC_F2),KC_F8,   KC_F7,   KC_BSPC,
   //|--------+--------+--------+--------+--------+-|                    |--------+--------+--------+--------+--------|
-  //  PSCR   _        C-r      C-y       _           C-F9    A-F7    S-F6    A-Ent    C-;
-      KC_PSCR, _______, C(KC_R), C(KC_Y), _______,   C(KC_F9),A(KC_F7),S(KC_F6),A(KC_ENT),C(KC_SCLN),
+  //  PSCR   SRCH     C-r      C-y       _           C-F9    A-F7    S-F6    A-Ent    C-;
+      KC_PSCR, KC_SRCHEV, C(KC_R), C(KC_Y), _______, C(KC_F9),A(KC_F7),S(KC_F6),A(KC_ENT),C(KC_SCLN),
   //|--------+--------+--------+--------+--------+-|                    |--------+--------+--------+--------+--------|
   //  C-c    C-z      C-d      C-x      C-v           C-F8    INS      _        _       UG
       C(KC_C),C(KC_Z), C(KC_D), C(KC_X), C(KC_V),   C(KC_F8), KC_INS, _______, _______, UG_TOGG,
@@ -220,7 +250,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 // ╚══════════════════════════════════════════════════════════════════════════╝
 [5] = LAYOUT_split_3x5_3(
   //|----------------------------------------------|                    |--------------------------------------------|
-      KC_GT,   KC_LT  ,  KC_LBRC, KC_RBRC, KC_AT,                         _______, _______, _______, _______, KC_BSPC,
+      KC_LT,   KC_GT  ,  KC_LBRC, KC_RBRC, KC_AT,                         _______, _______, _______, _______, KC_BSPC,
   //|--------+--------+--------+--------+--------+-|                    |--------+--------+--------+--------+--------|
       KC_LPRN, KC_RPRN, KC_EQL,  KC_EXLM, KC_DQUO,                       _______, KC_RCTL, KC_RSFT, KC_RALT, KC_RCMD,
   //|--------+--------+--------+--------+--------+-|                    |--------+--------+--------+--------+--------|
