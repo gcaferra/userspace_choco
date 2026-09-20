@@ -1,7 +1,7 @@
 #pragma once
 
 // ─── Combo ────────────────────────────────────────────────────────────────────
-#define COMBO_COUNT 5
+#define COMBO_COUNT 9
 #define COMBO_TERM 40           // ms window; raise to 70 if still missing, lower
                                 // to 35 if you get accidental triggers in typing
 
@@ -16,7 +16,7 @@
 
 // QUICK_TAP_TERM: tapping a mod-tap twice quickly repeats the tap keycode
 // instead of producing a hold. Prevents double-letter issues (e.g. "ss", "nn").
-#define QUICK_TAP_TERM 120
+//#define QUICK_TAP_TERM 120
 
 // ─── One-shot mods ────────────────────────────────────────────────────────────
 #define ONESHOT_TIMEOUT 2000    // ms before an unconsumed one-shot mod expires

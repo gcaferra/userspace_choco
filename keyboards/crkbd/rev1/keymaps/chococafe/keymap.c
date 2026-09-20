@@ -19,13 +19,17 @@
 
 // ─── Custom keycodes ──────────────────────────────────────────────────────────
 enum custom_keycodes {
-    KC_ARROW = SAFE_RANGE,  // =>
-    KC_NEQL,                // !=
-    KC_DEQL,                // ==
-    KC_NCOAL,               // ??
-    KC_RARR,                // ->
-    KC_SUDORM,              // sudo !!
-    KC_SRCHEV,              // Search Everywhere (double Shift) — Rider / IntelliJ
+    KC_ARROW = SAFE_RANGE,
+    KC_NEQL,
+    KC_DEQL,
+    KC_NCOAL,
+    KC_RARR,
+    KC_SUDORM,
+    KC_SRCHEV,
+    KC_PAREN,    // ()
+    KC_BRACE,    // {}
+    KC_BRACKET,  // []
+    KC_GENERIC,  // <>
 };
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
@@ -37,6 +41,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             case KC_NCOAL:  SEND_STRING("??"); return false;
             case KC_RARR:   SEND_STRING("->"); return false;
             case KC_SUDORM: SEND_STRING("sudo !!"); return false;
+            case KC_PAREN:   SEND_STRING("()" SS_TAP(X_LEFT)); return false;
+            case KC_BRACE:   SEND_STRING("{}" SS_TAP(X_LEFT)); return false;
+            case KC_BRACKET: SEND_STRING("[]" SS_TAP(X_LEFT)); return false;
+            case KC_GENERIC: SEND_STRING("<>" SS_TAP(X_LEFT)); return false;
 
             // JetBrains "Search Everywhere" is a double-tap of Shift.
             // Two Shift taps produce the press/release/press/release sequence
@@ -75,20 +83,31 @@ const uint16_t PROGMEM deql_combo[]  = {SFT_D, CTL_F, COMBO_END};  // ==
 const uint16_t PROGMEM rarr_combo[]  = {CMD_H, CTL_J, COMBO_END};  // ->
 const uint16_t PROGMEM arrow_combo[] = {CTL_J, SFT_K, COMBO_END};  // =>
 const uint16_t PROGMEM ncoal_combo[] = {SFT_K, ALT_L, COMBO_END};  // ??
+const uint16_t PROGMEM paren_combo[]   = {CTL_F, CTL_J, COMBO_END};  // ()
+const uint16_t PROGMEM brace_combo[]   = {SFT_D, SFT_K, COMBO_END};  // {}
+const uint16_t PROGMEM bracket_combo[] = {CMD_G, CMD_H, COMBO_END};  // []
+const uint16_t PROGMEM generic_combo[] = {ALT_S, ALT_L, COMBO_END};  // <>
 
 combo_t key_combos[] = {
-    COMBO(neql_combo,  KC_NEQL),
-    COMBO(deql_combo,  KC_DEQL),
-    COMBO(rarr_combo,  KC_RARR),
-    COMBO(arrow_combo, KC_ARROW),
-    COMBO(ncoal_combo, KC_NCOAL),
+    COMBO(neql_combo,    KC_NEQL),
+    COMBO(deql_combo,    KC_DEQL),
+    COMBO(rarr_combo,    KC_RARR),
+    COMBO(arrow_combo,   KC_ARROW),
+    COMBO(ncoal_combo,   KC_NCOAL),
+    COMBO(paren_combo,   KC_PAREN),
+    COMBO(brace_combo,   KC_BRACE),
+    COMBO(bracket_combo, KC_BRACKET),
+    COMBO(generic_combo, KC_GENERIC),
 };
 
 // Every combo sits on home-row mod-taps, so make them all tap-only: they fire
 // only when the keys are tapped together, never when held for their modifier.
 // (Requires #define COMBO_MUST_TAP_PER_COMBO in config.h)
-bool get_combo_must_tap(uint16_t combo_index, combo_t *combo) {
-    return true;
+uint16_t get_combo_term(uint16_t combo_index, combo_t *combo) {
+    switch (combo_index) {
+        case 5 ... 8: return 60;  // paren/brace/bracket/generic — cross-hand, a bit more slack
+        default:      return COMBO_TERM;
+    }
 }
 
 // ─── Per-key tapping term ─────────────────────────────────────────────────────
