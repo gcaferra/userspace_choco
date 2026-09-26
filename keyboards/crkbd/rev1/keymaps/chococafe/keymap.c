@@ -59,34 +59,45 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     return true;
 }
 
-// ─── Combos — organized on the home row ───────────────────────────────────────
-// Combos DO fire on mod-tap keys. The catch is that the combo array must contain
-// the mod-tap keycode EXACTLY as it appears in the keymap (e.g. SFT_D, not KC_D);
-// referencing the bare letter would never match.
+// ─── Combos ────────────────────────────────────────────────────────────────────
 //
-// To stop a combo from firing while you're holding those same keys for their
-// home-row modifier role, every combo here is tap-only (see get_combo_must_tap)
-// and COMBO_TERM is kept short (see config.h notes). So: tap two neighbours
-// together => symbol; hold them => normal Alt/Shift/Ctrl/Cmd mods.
+// Equality / arrow family — top row, plain letters (no mod-tap involved):
+//   W + E  =>  !=
+//   E + R  =>  ==
+//   Y + U  =>  ->
+//   U + I  =>  =>
+//   I + O  =>  ??
 //
-//  Left hand — comparison / equality family
-//   S + D  =>  !=   (ring + middle)
-//   D + F  =>  ==   (middle + index — strongest left pair)
+//   Trade-off: these sit on ordinary letters, so fast typing of real bigrams
+//   ("were", "user"/"error", "quiet", "action") can occasionally misfire the
+//   combo instead of the letters. If that happens in practice, the fix is
+//   either a shorter COMBO_TERM for just these indices (see get_combo_term)
+//   or moving the pair apart. Flagging it here rather than silently living
+//   with it.
 //
-//  Right hand — arrow / null family
-//   H + J  =>  ->   (inner index + index — least-used, so the inner column)
-//   J + K  =>  =>   (index + middle — strongest right pair, most-used lambda)
-//   K + L  =>  ??   (middle + ring)
+// Bracket-pair family — bottom row, plain letters, deliberately NOT paired
+// with a mod-tap key. An earlier version paired these with the mod-tap
+// directly above (e.g. CTL_F + V), which collided head-on with real
+// shortcuts fired through those same mod-taps — CTL_F held + V tapped is
+// Ctrl+V (paste), SFT_K held + comma is literally how you type "<" on this
+// layout. Every use of those shortcuts risked firing a bracket combo
+// instead. Plain-letter pairs remove that collision entirely; the only
+// remaining risk is the much smaller one of adjacent-letter bigrams.
+//   X + C   =>  ()
+//   V + B   =>  {}
+//   M + ,   =>  []
+//   . + /   =>  <>   (small risk typing "./relative/paths" quickly)
 
-const uint16_t PROGMEM neql_combo[]  = {ALT_S, SFT_D, COMBO_END};  // !=
-const uint16_t PROGMEM deql_combo[]  = {SFT_D, CTL_F, COMBO_END};  // ==
-const uint16_t PROGMEM rarr_combo[]  = {CMD_H, CTL_J, COMBO_END};  // ->
-const uint16_t PROGMEM arrow_combo[] = {CTL_J, SFT_K, COMBO_END};  // =>
-const uint16_t PROGMEM ncoal_combo[] = {SFT_K, ALT_L, COMBO_END};  // ??
-const uint16_t PROGMEM paren_combo[]   = {CTL_F, CTL_J, COMBO_END};  // ()
-const uint16_t PROGMEM brace_combo[]   = {SFT_D, SFT_K, COMBO_END};  // {}
-const uint16_t PROGMEM bracket_combo[] = {CMD_G, CMD_H, COMBO_END};  // []
-const uint16_t PROGMEM generic_combo[] = {ALT_S, ALT_L, COMBO_END};  // <>
+const uint16_t PROGMEM neql_combo[]  = {KC_W, KC_E, COMBO_END};  // !=
+const uint16_t PROGMEM deql_combo[]  = {KC_E, KC_R, COMBO_END};  // ==
+const uint16_t PROGMEM rarr_combo[]  = {KC_Y, KC_U, COMBO_END};  // ->
+const uint16_t PROGMEM arrow_combo[] = {KC_U, KC_I, COMBO_END};  // =>
+const uint16_t PROGMEM ncoal_combo[] = {KC_I, KC_O, COMBO_END};  // ??
+
+const uint16_t PROGMEM paren_combo[]   = {KC_X,    KC_C,    COMBO_END};  // ()
+const uint16_t PROGMEM brace_combo[]   = {KC_V,    KC_B,    COMBO_END};  // {}
+const uint16_t PROGMEM bracket_combo[] = {KC_M,    KC_COMM, COMBO_END};  // []
+const uint16_t PROGMEM generic_combo[] = {KC_DOT,  KC_SLSH, COMBO_END};  // <>
 
 combo_t key_combos[] = {
     COMBO(neql_combo,    KC_NEQL),
@@ -100,14 +111,15 @@ combo_t key_combos[] = {
     COMBO(generic_combo, KC_GENERIC),
 };
 
-// Every combo sits on home-row mod-taps, so make them all tap-only: they fire
-// only when the keys are tapped together, never when held for their modifier.
-// (Requires #define COMBO_MUST_TAP_PER_COMBO in config.h)
+// No combo above contains a mod-tap keycode anymore, so there's no hold-vs-tap
+// ambiguity left to resolve — must-tap is a no-op for all nine right now, but
+// it's cheap insurance if a future combo brings a mod-tap key back in.
+bool get_combo_must_tap(uint16_t combo_index, combo_t *combo) {
+    return true;
+}
+
 uint16_t get_combo_term(uint16_t combo_index, combo_t *combo) {
-    switch (combo_index) {
-        case 5 ... 8: return 60;  // paren/brace/bracket/generic — cross-hand, a bit more slack
-        default:      return COMBO_TERM;
-    }
+    return COMBO_TERM;  // uniform now — no mod-tap keys in any combo to protect
 }
 
 // ─── Per-key tapping term ─────────────────────────────────────────────────────
@@ -125,6 +137,23 @@ uint16_t get_tapping_term(uint16_t keycode, keyrecord_t *record) {
     }
 }
 
+// Both thumb keys are layer-taps sharing the base layer with a plain letter
+// (SPC_L1 with P-position backspace on layer 1, ENT_L4 with the Rider layer).
+// Permissive hold resolves the hold the instant a second key is
+// pressed-and-released while the layer-tap key is still down, instead of
+// waiting out the full tapping term — this is what stops "backspace" from
+// occasionally arriving as "p" (or a Rider shortcut arriving as literal
+// Enter + letter) when typing fast.
+bool get_permissive_hold(uint16_t keycode, keyrecord_t *record) {
+    switch (keycode) {
+        case SPC_L1:
+        case ENT_L4:
+            return true;
+        default:
+            return false;
+    }
+}
+
 // ─── Keymap ───────────────────────────────────────────────────────────────────
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -137,8 +166,10 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 // ║   Z   X   C   V   B       N   M   ,   .   /                             ║
 // ║           [3][2][SPC/1]  [ENT/4][5][6]                                  ║
 // ║                                                                          ║
-// ║  Home-row combos (tap two neighbours together):                          ║
-// ║   S+D = !=   D+F = ==        H+J = ->   J+K = =>   K+L = ??              ║
+// ║  Top-row combos (tap two neighbours together):                           ║
+// ║   W+E = !=   E+R = ==        Y+U = ->   U+I = =>   I+O = ??              ║
+// ║  Bottom-row combos:                                                      ║
+// ║   X+C = ()   V+B = {}        M+, = []   .+/ = <>                        ║
 // ╚══════════════════════════════════════════════════════════════════════════╝
 [0] = LAYOUT_split_3x5_3(
   //|----------------------------------------------|                    |--------------------------------------------|
